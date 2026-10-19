@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 const NAV = [
   { href: "/saju", label: "사주" },
   { href: "/tarot", label: "타로" },
-  { href: "/sources", label: "데이터 출처" },
 ];
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

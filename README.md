@@ -17,6 +17,17 @@ npm run dev -- -p 3100   # http://localhost:3100
 npm test                 # 만세력·타로 검증 테스트
 ```
 
+## 관리자 페이지
+
+`/admin`(관리 홈)과 `/sources`(데이터 출처)는 로그인해야 볼 수 있다. 상단 메뉴에는 나오지 않는다.
+
+```bash
+cp .env.example .env.local   # ADMIN_USER, ADMIN_PASSWORD, ADMIN_SECRET(32자 이상) 설정
+```
+
+- 비밀번호는 `.env.local`에만 둔다(git에 올라가지 않음). 배포할 때는 배포 환경 변수로 넣는다.
+- 세션은 HMAC 서명 쿠키(HttpOnly, 7일)를 쓴다. `src/proxy.ts`가 1차로 확인하고, 각 페이지가 서버에서 2차로 확인한다.
+
 ## 데이터 다시 만들기
 
 ```bash
