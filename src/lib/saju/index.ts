@@ -7,12 +7,14 @@
  * - 시주: 보정된 현지 태양시로 시지, 일간에서 시간(갑기일 갑자시 …). 23시~24시는 다음 날 자시 천간.
  * - 일주 경계(dayBoundary): "23" = 자시 시작(23시)에 날이 바뀜, "00" = 자정에 바뀜(야자시·조자시 구분).
  * - 대운: 양남음녀 순행·음남양녀 역행, 다음/이전 절까지 일수 ÷ 3 = 대운 시작 나이(년).
+ * - 격국: 자평진전식 내격 (gyeokguk.ts).
  */
 import {
   BRANCHES, ELEMENTS, STEMS, type Element, type Pillar, type TenGod, type TwelveStage,
   monthBranchForJie, pillarHanja, pillarKo, sexagenary, sexagenaryIndex, tenGod, twelveStage,
 } from "./constants";
 import { isValidSolarDate, lunarToSolar, solarToLunar, type YMD } from "./calendar";
+import { judgeGyeokguk, type Gyeokguk } from "./gyeokguk";
 import { ipchunAtOrBefore, jieAround, type SolarTerm } from "./terms";
 import {
   DAY, MIN, julianDayNumber, partsOfLocalMs, seoulOffsetAt, seoulWallToUtc, solarLocalMs, type TimeCorrection,
@@ -86,6 +88,8 @@ export interface SajuResult {
   correctionMinutes: number | null;
   pillars: { year: PillarInfo; month: PillarInfo; day: PillarInfo; hour: PillarInfo | null };
   elements: Record<Element, number>;
+  /** 격국 (자평진전식 내격)과 판정 근거 */
+  gyeokguk: Gyeokguk;
   jie: { prev: SolarTerm; next: SolarTerm };
   /** 연주를 정한 입춘 */
   ipchun: SolarTerm;
@@ -263,7 +267,15 @@ export function computeSaju(input: SajuInput, now: Date = new Date()): SajuResul
     elements[BRANCHES[p.branch].element]++;
   }
 
-  // 6) 대운
+  // 6) 격국 (월령 지장간의 투출)
+  const gyeokguk = judgeGyeokguk({
+    dayStem,
+    monthBranch,
+    stems: { year: yearPillar.stem, month: monthPillar.stem, hour: hourPillar?.stem ?? null },
+    branches: [yearPillar, monthPillar, dayPillar, hourPillar].filter((p) => p !== null).map((p) => p.branch),
+  });
+
+  // 7) 대운
   const yangYear = yearPillar.stem % 2 === 0;
   const forward = (yangYear && input.gender === "M") || (!yangYear && input.gender === "F");
   const deltaMs = forward ? jie.next.utcMs - birthUtcMs : birthUtcMs - jie.prev.utcMs;
@@ -280,14 +292,14 @@ export function computeSaju(input: SajuInput, now: Date = new Date()): SajuResul
   const totalMonths = Math.floor(startAgeExact * 12);
   if (!timeKnown) warnings.push("대운 시작 시기는 출생 시각을 정오로 가정한 근사값입니다.");
 
-  // 7) 세운 (올해부터 10년)
+  // 8) 세운 (올해부터 10년)
   const thisYear = new Date(now.getTime() + 9 * 3600e3).getUTCFullYear();
   const seun: SeunItem[] = Array.from({ length: 10 }, (_, k) => ({
     year: thisYear + k,
     ...pillarInfo(sexagenary(thisYear + k - 4), dayStem),
   }));
 
-  // 8) 보정 방식별 비교
+  // 9) 보정 방식별 비교
   const alternatives: SajuResult["alternatives"] = [];
   if (timeKnown) {
     for (const correction of ["standard", "longitude", "apparent"] as const) {
@@ -314,6 +326,7 @@ export function computeSaju(input: SajuInput, now: Date = new Date()): SajuResul
     correctionMinutes,
     pillars,
     elements,
+    gyeokguk,
     jie,
     ipchun,
     daeun: {

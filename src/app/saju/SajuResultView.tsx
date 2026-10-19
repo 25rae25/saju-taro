@@ -1,6 +1,7 @@
 import { CORRECTION_LABEL, type PillarInfo, type SajuResult } from "@/lib/saju";
 import { BRANCHES, ELEMENT_HANJA, ELEMENTS, STEMS, type Element } from "@/lib/saju/constants";
 import { seoulOffsetAt } from "@/lib/saju/time";
+import GyeokgukView from "./GyeokgukView";
 
 const ELEMENT_TEXT: Record<Element, string> = {
   목: "text-wood",
@@ -145,6 +146,10 @@ export default function SajuResultView({ r, now }: { r: SajuResult; now: number 
           <PillarColumn title="월주" p={r.pillars.month} />
           <PillarColumn title="연주" p={r.pillars.year} isYear />
         </div>
+      </Section>
+
+      <Section title="격국" note="자평진전식 · 월지 지장간의 투출로 판정">
+        <GyeokgukView g={r.gyeokguk} />
       </Section>
 
       <Section title="오행 분포" note={`천간·지지 ${total}글자 기준 (지장간 제외)`}>
