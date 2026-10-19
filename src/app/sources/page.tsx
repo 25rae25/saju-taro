@@ -10,7 +10,7 @@ const ROWS: { what: string; source: string; license: string; href?: string }[] =
   { what: "절기 검증 기준", source: "한국천문연구원 달력자료 2021–2028 (192개, 분 단위)", license: "검증 전용", href: "https://astro.kasi.re.kr/kor/life/post/calendarData" },
   { what: "음력 ↔ 양력", source: "korean-lunar-calendar 0.4.0 (한국천문연구원 기준 데이터)", license: "MIT", href: "https://github.com/usingsky/korean_lunar_calendar_js" },
   { what: "한국 표준시·서머타임 변천", source: tz.meta.source, license: "퍼블릭 도메인", href: "https://www.iana.org/time-zones" },
-  { what: "격국 판정 규칙", source: "沈孝瞻, 『子平眞詮』(청 건륭 연간) 論用神·論用神變化·論陽刃 — 아래 표", license: "퍼블릭 도메인" },
+  { what: "격국 판정 규칙", source: "沈孝瞻, 『子平眞詮』(청 건륭 연간) 論用神·論用神變化·論雜氣如何取用·論陽刃·論建祿月劫 — 아래 표. 대조본: 東里書齋 『秘本子平真詮』(중주본 교감)", license: "퍼블릭 도메인" },
   { what: "진태양시 균시차", source: "astronomy-engine 2.1.19 (태양 시각)", license: "MIT", href: "https://github.com/cosinekitty/astronomy" },
   { what: "타로 원전 의미", source: "A. E. Waite, The Pictorial Key to the Tarot (1911)", license: "퍼블릭 도메인", href: "https://sacred-texts.com/tarot/pkt/index.htm" },
   { what: "타로 카드 그림", source: "Pamela Colman Smith, 1909 초판 스캔 — Wikimedia Commons ‘Roses & Lilies’", license: "퍼블릭 도메인", href: "https://commons.wikimedia.org/wiki/Category:Rider-Waite_tarot_deck_(Roses_%26_Lilies)" },
@@ -80,9 +80,10 @@ export default function SourcesPage() {
             <li key={id} className="rounded-lg border border-line bg-surface p-3">
               <div className="text-xs text-muted">
                 『{q.work}』 {q.chapter}
-                {!q.checked && " · 온라인 전사본과 대조하지 못함"}
+                {!q.checked && " · 대조본과 대조하지 못함"}
               </div>
               <div className="mt-1 font-serif">{q.quote}</div>
+              {"note" in q && <div className="mt-1 text-xs text-muted">{q.note}</div>}
             </li>
           ))}
         </ul>

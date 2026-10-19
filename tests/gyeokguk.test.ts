@@ -135,16 +135,50 @@ describe("건록·양인·월겁", () => {
   });
 });
 
-describe("子午卯酉월은 정기만 본다", () => {
+describe("子午卯酉월의 여기는 판정에 쓰지 않음 (午의 중기 己는 씀)", () => {
   test("갑일간 자월: 여기 임만 투출해도 정기 계 정인격", () => {
     const g = judge(갑, 자, 임, 병);
     expect(g.name).toBe("정인격");
-    expect(g.rule).toBe("wangji");
-    expect(role(g, "여기").note).toContain("정기만");
+    expect(g.rule).toBe("jeonggiDefault");
+    expect(role(g, "여기").note).toContain("여기는 판정에 쓰지 않음");
   });
-  test("경일간 오월: 중기 기 투출이어도 정기 정 정관격", () => {
-    expect(judge(경, 오, 기, 기).name).toBe("정관격");
+  test("경일간 유월은 건록이 아니라 양인 — 경일간 묘월: 여기 갑 투출해도 정기 을 정재격", () => {
+    expect(judge(경, 묘, 갑, 계).name).toBe("정재격");
+  });
+  test("경일간 오월: 여기 병만 투출 → 정기 정 정관격", () => {
+    const g = judge(경, 오, 병, 계);
+    expect(g.name).toBe("정관격");
+    expect(role(g, "여기").note).toContain("여기는 판정에 쓰지 않음");
+  });
+  test("경일간 오월: 중기 기 투출 → 정인격, 정기 정도 투출하면 정관격", () => {
+    expect(judge(경, 오, 기, 기).name).toBe("정인격");
     expect(judge(경, 오, 정, 기).name).toBe("정관격");
+  });
+  test("癸生午月 丁己並透 → 정기 정 편재격, 己만 투출 → 편관격", () => {
+    expect(judge(계, 오, 정, 기).name).toBe("편재격");
+    expect(judge(계, 오, 기, 경).name).toBe("편관격");
+  });
+});
+
+describe("申월의 중기 壬을 여기 戊가 극하면 본격(정기)", () => {
+  // 신(申) = 여기 무 · 중기 임 · 정기 경
+  test("乙生申月 透壬 → 정인격, 而又透戊 → 정관격 (格成正官)", () => {
+    expect(judge(을, 申, 임, 계).name).toBe("정인격");
+    const g = judge(을, 申, 임, 무);
+    expect(g.name).toBe("정관격");
+    expect(g.rule).toBe("mainKept");
+    expect(role(g, "정기").chosen).toBe(true);
+    expect(role(g, "중기").note).toContain("물러남");
+  });
+  test("丙生申月 逢壬 → 편관격, 而又透戊 → 편재격 (仍爲財格)", () => {
+    expect(judge(병, 申, 임, 계).name).toBe("편관격");
+    expect(judge(병, 申, 임, 무).name).toBe("편재격");
+  });
+  test("여기 戊만 투출하면 여기 격 (갑일간: 편재격)", () => {
+    expect(judge(갑, 申, 무, 계).name).toBe("편재격");
+  });
+  test("정기 庚도 투출하면 정기가 먼저", () => {
+    expect(judge(을, 申, 임, 무, 경).rule).toBe("jeonggiReveal");
   });
 });
 
@@ -159,16 +193,27 @@ describe("辰戌丑未월의 戊·己 일간 (정기가 비겁)", () => {
     expect(judge(무, 진, 경, 신).rule).toBe("gojiWolgeop");
     const g = judge(무, 진, 무, 신);
     expect(g.name).toBe("월겁격");
-    expect(role(g, "정기").note).toContain("비견");
+    expect(role(g, "정기").note).toContain("비겁");
   });
   test("기일간 진월(정기 무 = 겁재)도 같은 방식: 을 투출 → 편관격", () => {
     expect(judge(기, 진, 을, 경).name).toBe("편관격");
     expect(judge(기, 축, 경, 임).name).toBe("월겁격"); // 축 = 계·신·기, 투출 없음
   });
-  test("토 일간이 아니면 사고월도 일반 규칙 (갑일간 진월: 정기 무 편재격)", () => {
-    expect(judge(갑, 진, 경, 병).name).toBe("편재격");
+  test("甲生辰月: 透戊則用偏財，透癸則用正印，透乙則用月劫", () => {
+    expect(judge(갑, 진, 경, 병).name).toBe("편재격"); // 투출 없음 → 정기
+    expect(judge(갑, 진, 무, 병).name).toBe("편재격");
     expect(judge(갑, 진, 계, 병).name).toBe("정인격");
-    expect(judge(갑, 진, 을, 병).name).toBe("편재격"); // 여기 을 = 겁재
+    const g = judge(갑, 진, 을, 병);
+    expect(g.name).toBe("월겁격");
+    expect(g.rule).toBe("hiddenReveal");
+    expect(role(g, "여기").chosen).toBe(true);
+  });
+  test("잡기월에서 여러 개 투출하면 서열 (갑일간 진월: 을+무 → 편재격, 을+계 → 정인격)", () => {
+    expect(judge(갑, 진, 을, 무).name).toBe("편재격");
+    expect(judge(갑, 진, 을, 계).name).toBe("정인격");
+  });
+  test("중기 비겁도 잡기월이면 월겁 (임일간 진월, 계 투출)", () => {
+    expect(judge(임, 진, 계, 경).name).toBe("월겁격");
   });
 });
 
@@ -219,7 +264,11 @@ describe("전수 검사 — 10 일간 × 12 월지 × 투출 조합", () => {
       const g = judgeGyeokguk(c);
       const chosen = g.hidden.filter((h) => h.chosen);
       if (["건록격", "양인격", "월겁격"].includes(g.name)) {
-        expect(chosen).toHaveLength(0);
+        if (g.rule === "hiddenReveal") {
+          // 잡기월에서 투출한 비견·겁재를 월겁으로 쓴 경우
+          expect(GOJI).toContain(c.monthBranch);
+          expect(["비견", "겁재"]).toContain(chosen[0].tenGod);
+        } else expect(chosen).toHaveLength(0);
         continue;
       }
       expect(chosen).toHaveLength(1);
@@ -228,17 +277,31 @@ describe("전수 검사 — 10 일간 × 12 월지 × 투출 조합", () => {
       expect(g.name).toBe(`${chosen[0].tenGod}격`);
     }
   });
-  test("월겁·건록·양인은 월령이 일간과 같은 기운일 때만", () => {
+  test("子午卯酉의 여기는 격으로 고르지 않음", () => {
+    for (const c of cases) {
+      if (!WANGJI.includes(c.monthBranch)) continue;
+      expect(judgeGyeokguk(c).hidden.find((h) => h.role === "여기")?.chosen ?? false).toBe(false);
+    }
+  });
+  test("본격 유지(mainKept)는 申월 壬·戊에서만 일어남", () => {
     for (const c of cases) {
       const g = judgeGyeokguk(c);
-      if (!["건록격", "양인격", "월겁격"].includes(g.name)) continue;
+      if (g.rule !== "mainKept") continue;
+      expect(c.monthBranch).toBe(申);
+      expect([c.stems.year, c.stems.month].sort()).toEqual([무, 임]);
+    }
+  });
+  test("월령에서 정한 월겁·건록·양인은 월령이 일간과 같은 기운일 때만", () => {
+    for (const c of cases) {
+      const g = judgeGyeokguk(c);
+      if (!["geonrok", "yangin", "wolgeop", "gojiWolgeop"].includes(g.rule)) continue;
       const main = BRANCHES[c.monthBranch].hidden.at(-1)![0];
       const sameQi = ["비견", "겁재"].includes(tenGod(c.dayStem, main)) || ROK_BRANCH[c.dayStem] === c.monthBranch || YANGIN_BRANCH[c.dayStem] === c.monthBranch;
       expect(sameQi).toBe(true);
     }
   });
-  test("子午卯酉월의 격은 투출과 무관", () => {
-    for (const m of WANGJI)
+  test("子卯酉월의 격은 투출과 무관 (午는 중기 己가 있어 제외)", () => {
+    for (const m of [자, 묘, 유])
       for (let d = 0; d < 10; d++) {
         const names = new Set(cases.filter((c) => c.dayStem === d && c.monthBranch === m).map((c) => judgeGyeokguk(c).name));
         expect(names.size).toBe(1);
@@ -248,6 +311,38 @@ describe("전수 검사 — 10 일간 × 12 월지 × 투출 조합", () => {
     for (const r of GYEOK_RULES) for (const s of r.sources) expect(GYEOK_SOURCES[s]).toBeDefined();
     expect(GOJI.map((b) => BRANCHES[b].ko)).toEqual(["축", "진", "미", "술"]);
     expect(WANGJI.map((b) => BRANCHES[b].ko)).toEqual(["자", "묘", "오", "유"]);
+  });
+});
+
+describe("『子平眞詮』 원문 예시", () => {
+  test.each([
+    ["辛生寅月 透丙 → 정관 (論用神變化)", 신, 인, [병], "정관격"],
+    ["壬生戌月 逢辛 → 정인", 임, 술, [신], "정인격"],
+    ["己生申月 藏庚透壬 → 정재", 기, 申, [임], "정재격"],
+    ["辛生寅月 透丙 而又透甲 → 정재 (格成正財)", 신, 인, [병, 갑], "정재격"],
+    ["癸生寅月 透丙 而又透甲 → 상관 (格成傷官)", 계, 인, [병, 갑], "상관격"],
+    ["乙生申月 透壬 而又透戊 → 정관 (格成正官)", 을, 申, [임, 무], "정관격"],
+    ["丙生申月 逢壬 而又透戊 → 편재 (仍爲財格)", 병, 申, [임, 무], "편재격"],
+    ["丙生寅月 甲不透 → 편인 (本爲印綬)", 병, 인, [], "편인격"],
+    ["丁生亥月 → 정관 (本爲正官)", 정, 해, [], "정관격"],
+    ["乙生寅月 透戊 → 월겁 (論用神變化)", 을, 인, [무], "월겁격"],
+    ["甲生辰月 透戊 → 편재 (論雜氣如何取用)", 갑, 진, [무], "편재격"],
+    ["甲生辰月 透癸 → 정인", 갑, 진, [계], "정인격"],
+    ["甲生辰月 透乙 → 월겁", 갑, 진, [을], "월겁격"],
+    ["甲生丑月 透辛 → 정관", 갑, 축, [신], "정관격"],
+    ["丙生辰月 透癸 而又透乙 → 정관 (官與印相生)", 병, 진, [계, 을], "정관격"],
+    ["壬生未月 透己 → 정관", 임, 미, [기], "정관격"],
+    ["丙生午月 → 양인 (論陽刃)", 병, 오, [], "양인격"],
+    ["戊生午月 → 양인 (論陽刃)", 무, 오, [], "양인격"],
+    ["木生寅卯 — 甲寅 건록", 갑, 인, [], "건록격"],
+    ["木生寅卯 — 甲卯 양인", 갑, 묘, [], "양인격"],
+    ["木生寅卯 — 乙卯 건록", 을, 묘, [], "건록격"],
+    ["木生寅卯 — 乙寅 월겁", 을, 인, [], "월겁격"],
+  ] as const)("%s", (_, d, m, revealed, name) => {
+    // 투출하지 않은 자리에는 월지 지장간에 없는 천간을 넣는다
+    const filler = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].find((s) => !BRANCHES[m].hidden.some(([h]) => h === s))!;
+    const [y, mo] = [revealed[0] ?? filler, revealed[1] ?? filler];
+    expect(judge(d, m, y, mo).name).toBe(name);
   });
 });
 

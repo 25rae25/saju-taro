@@ -3,9 +3,11 @@
  *
  * 판정 순서 (규칙 표와 근거는 docs/DATA.md "격국" 절):
  * 1. 월령이 일간과 같은 기운이면 건록격(祿 자리)·양인격(양간의 刃 자리)·월겁격(정기가 겁재)이다. 투출은 따지지 않는다.
- * 2. 子午卯酉월은 정기만 본다.
- * 3. 寅申巳亥·辰戌丑未월은 정기가 투출하면 정기, 아니면 투출한 지장간(중기 > 여기), 투출이 없으면 정기로 정한다.
- *    비견·겁재는 격이 되지 않는다. 辰戌丑未월의 戊·己 일간처럼 정기가 비겁이면 정기를 건너뛰고, 투출이 없으면 월겁격이다.
+ * 2. 정기가 투출하면 정기, 아니면 투출한 지장간(중기 > 여기), 투출이 없으면 정기로 정한다.
+ *    - 子午卯酉의 여기는 판정에 쓰지 않는다. 午의 중기 己는 쓴다.
+ *    - 寅申巳亥에서 투출한 비견·겁재는 격이 되지 않는다. 辰戌丑未(잡기)에서는 월겁으로 쓴다.
+ *    - 고른 중기를 함께 투출한 여기가 극하면 중기는 물러나고 정기(본격)로 돌아간다 (申월의 壬·戊).
+ *    - 辰戌丑未월의 戊·己 일간처럼 정기가 비겁이면 정기를 건너뛰고, 투출이 없으면 월겁격이다.
  * 외격과 삼합 변격(회지)은 판정하지 않는다. 월지가 낀 삼합이 성립하면 참고로만 알린다.
  */
 import { BRANCHES, ELEMENTS, STEMS, tenGod, type Element, type TenGod } from "./constants";
@@ -15,48 +17,85 @@ import { BRANCHES, ELEMENTS, STEMS, tenGod, type Element, type TenGod } from "./
 export interface GyeokSource {
   work: string;
   chapter: string;
-  /** 원문 (번체). 생략한 곳은 … */
+  /** 원문 (대조본의 글자 그대로). 생략한 곳은 … */
   quote: string;
-  /** 온라인 전사본과 글자를 대조했는지 */
+  /** 대조본과 글자를 맞춰 봤는지 */
   checked: boolean;
+  /** 교감·이본 메모 */
+  note?: string;
 }
 
-/** 沈孝瞻 『子平眞詮』(청 건륭 연간, 퍼블릭 도메인). 대조본은 docs/DATA.md에 적었다. */
+/**
+ * 沈孝瞻 『子平眞詮』(청 건륭 연간, 퍼블릭 도메인).
+ * 대조본: 東里書齋 『秘本子平真詮』 번체 전문(중주본 中州本 교감). 자세한 내용은 docs/DATA.md.
+ */
 export const GYEOK_SOURCES = {
   monthly: {
     work: "子平眞詮",
     chapter: "論用神",
-    quote: "八字用神，專求月令，以日干配月令地支，而生剋不同，格局分焉。",
+    quote: "八字用神，專求月令，以日干配月令地支，而生尅不同，格局分焉。",
     checked: true,
   },
   rokGeop: {
     work: "子平眞詮",
     chapter: "論用神",
-    quote: "如木生寅卯，日與月同，本身不可為用，必看四柱有無財官殺食透干會支，另取用神。然終以月令為主，然後尋用，是建祿月劫之格，非用而即用神也。",
+    quote: "如木生寅卯，日與月同，本身不可爲用，必看四柱有無財官煞食透干會支，另取用神。然終以月令爲主，然後尋用，是建祿月劫之格，非用而即用神也。",
     checked: true,
   },
   rokGeopKinds: {
     work: "子平眞詮",
     chapter: "論用神",
-    quote: "陽刃喜官殺以制伏，忌官殺之俱無；月劫透官以制伏，用財而透食以化劫。",
+    quote: "陽刃喜官煞以制伏，忌官煞之俱無；月劫喜透官以制伏，利用財而透食以化劫。",
     checked: true,
   },
   yangin: {
     work: "子平眞詮",
     chapter: "論陽刃",
-    quote: "祿前一位，惟五陽有之，故為陽刃。",
-    checked: false,
+    quote: "陽刃者，劫我正財之神，乃正財之七煞也。祿前一位，惟五陽有之，故爲陽刃。",
+    checked: true,
+    note: "「五」는 저본에 「六」으로 되어 있던 것을 중주본에 따라 고친 글자다(대조본 교감).",
+  },
+  rokGeopSame: {
+    work: "子平眞詮",
+    chapter: "論建祿月劫",
+    quote: "建祿者，月建而逢祿堂也，祿即是劫。…故建祿與月劫，可同一格，不必另分，皆以透干合支，別取財官煞食爲用。",
+    checked: true,
   },
   transparent: {
     work: "子平眞詮",
     chapter: "論用神變化",
-    quote: "用神既主月令也，然月令所藏不一，而用神遂有變化。如十二支中，除子午卯酉外，餘皆有藏，不必四庫也。即以寅論，甲為本主…假使寅月為提，不透甲而透丙，則知府不臨郡，而同知得以作主。",
+    quote: "用神既主月令矣，然月令所藏不一，而用神遂有變化。如十二支中，除子午卯酉外，餘皆有藏，不必四墓也。即以寅論，甲爲本主…假使寅月爲提，不透甲而透丙，則如府官不臨郡，而同知得以作主。",
+    checked: true,
+    note: "간체 전사본(ykzhong.substack.com)은 「矣」를 「也」, 「四墓」를 「四库」, 「如府官」을 「知府」로 적었다.",
+  },
+  mainKept: {
+    work: "子平眞詮",
+    chapter: "論用神變化",
+    quote: "如辛生寅月，透丙化官，而又透甲，格成正財，正官乃其兼格也；乙生申月，透壬化印，而又透戊，則財能生官，印逢財而退位…格成正官，而印爲兼格；…丙生申月，逢壬化煞，而又透戊，則食神能制煞生財，仍爲財格。",
+    checked: true,
+  },
+  wolgeopKept: {
+    work: "子平眞詮",
+    chapter: "論用神變化",
+    quote: "乙生寅月，透戊爲財，會午會戌，則月劫化爲食傷。",
     checked: true,
   },
   hoeji: {
     work: "子平眞詮",
     chapter: "論用神變化",
-    quote: "乙生寅月，透戊為財，會午會戌，則月劫化為食傷。",
+    quote: "若丁生亥月，本爲正官，支全卯未，則化爲印。",
+    checked: true,
+  },
+  japgi: {
+    work: "子平眞詮",
+    chapter: "論雜氣如何取用",
+    quote: "四墓者，沖氣也，何以謂之雜氣？以其所藏者多，用神不一，故謂之雜氣也。…透干會支，取其清者用之，雜而不雜也。何謂透干？如甲生辰月，透戊則用偏財，透癸則用正印，透乙則用月劫是也。…一透則一用，兼透則兼用。",
+    checked: true,
+  },
+  ohGi: {
+    work: "子平眞詮",
+    chapter: "論陽刃 · 論用神純雜",
+    quote: "其於丙生午月，內藏己土，可以尅水 (論陽刃) / 癸生午月，丁己並透，財與煞相生 (論用神純雜)",
     checked: true,
   },
 } as const satisfies Record<string, GyeokSource>;
@@ -71,10 +110,10 @@ export const ROK_BRANCH: readonly number[] = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
 /** 양간의 양인(刃) 지지 — 녹 다음 자리(12운성 '제왕'). 음간은 없음(惟五陽有之). 갑묘 병오 무오 경유 임자 */
 export const YANGIN_BRANCH: readonly (number | null)[] = [3, null, 6, null, 6, null, 9, null, 0, null];
 
-/** 정기만 보는 왕지(子午卯酉) — 論用神變化 "除子午卯酉外，餘皆有藏" */
+/** 왕지(子午卯酉) — 여기를 판정에 쓰지 않는다 (論用神變化 "除子午卯酉外，餘皆有藏"). 午의 중기 己는 쓴다. */
 export const WANGJI: readonly number[] = [0, 3, 6, 9];
 
-/** 사고(辰戌丑未) */
+/** 사고(辰戌丑未) — 잡기(雜氣). 투출한 비견·겁재도 월겁으로 쓴다 (論雜氣如何取用 "透乙則用月劫") */
 export const GOJI: readonly number[] = [1, 4, 7, 10];
 
 export interface Samhap {
@@ -115,7 +154,7 @@ const EIGHT_GYEOK: Partial<Record<TenGod, GyeokName>> = {
   정인: "정인격", 편인: "편인격", 식신: "식신격", 상관: "상관격",
 };
 
-export type GyeokRuleId = "geonrok" | "yangin" | "wolgeop" | "wangji" | "jeonggiReveal" | "hiddenReveal" | "jeonggiDefault" | "gojiWolgeop";
+export type GyeokRuleId = "geonrok" | "yangin" | "wolgeop" | "jeonggiReveal" | "hiddenReveal" | "mainKept" | "jeonggiDefault" | "gojiWolgeop";
 
 export interface GyeokRule {
   id: GyeokRuleId;
@@ -126,15 +165,18 @@ export interface GyeokRule {
   sources: readonly GyeokSourceId[];
 }
 
-/** 판정 규칙 — judgeGyeokguk는 이 순서대로 처음 맞는 규칙을 쓴다. */
+/**
+ * 판정 규칙 — judgeGyeokguk는 이 순서대로 처음 맞는 규칙을 쓴다.
+ * 4~8에서 子午卯酉의 여기는 판정에 쓰지 않는다(午의 중기 己는 씀) — sources: transparent, ohGi.
+ */
 export const GYEOK_RULES: readonly GyeokRule[] = [
-  { id: "geonrok", order: 1, when: "월지가 일간의 건록(祿) 자리", then: "건록격", sources: ["rokGeop"] },
+  { id: "geonrok", order: 1, when: "월지가 일간의 건록(祿) 자리", then: "건록격", sources: ["rokGeop", "rokGeopSame"] },
   { id: "yangin", order: 2, when: "일간이 양간이고 월지가 양인(刃, 녹 다음) 자리", then: "양인격", sources: ["rokGeopKinds", "yangin"] },
-  { id: "wolgeop", order: 3, when: "월지가 寅申巳亥·子午卯酉이고 정기가 일간의 겁재 (음간의 겁재월: 乙寅·丁巳·辛申·癸亥)", then: "월겁격", sources: ["rokGeop", "rokGeopKinds"] },
-  { id: "wangji", order: 4, when: "월지가 子午卯酉", then: "정기의 십신 격 (여기·중기 투출은 판정에 쓰지 않음)", sources: ["transparent"] },
-  { id: "jeonggiReveal", order: 5, when: "월지 정기가 연간·월간·시간에 투출", then: "정기의 십신 격", sources: ["monthly", "transparent"] },
-  { id: "hiddenReveal", order: 6, when: "정기는 투출하지 않았거나 비겁이고, 여기·중기가 투출 (비견·겁재 제외, 중기 > 여기)", then: "투출한 지장간의 십신 격", sources: ["transparent"] },
-  { id: "jeonggiDefault", order: 7, when: "정기가 비겁이 아니고, 투출한 지장간이 없음", then: "정기의 십신 격", sources: ["monthly"] },
+  { id: "wolgeop", order: 3, when: "월지가 寅申巳亥·子午卯酉이고 정기가 일간의 겁재 (음간의 겁재월: 乙寅·丁巳·辛申·癸亥)", then: "월겁격", sources: ["rokGeop", "rokGeopSame", "wolgeopKept"] },
+  { id: "jeonggiReveal", order: 4, when: "월지 정기(비겁 아님)가 연간·월간·시간에 투출", then: "정기의 십신 격", sources: ["monthly", "mainKept"] },
+  { id: "hiddenReveal", order: 5, when: "정기가 투출하지 않았거나 비겁이고, 여기·중기가 투출 (중기 > 여기). 寅申巳亥의 비견·겁재 투출은 빼고, 辰戌丑未의 비견·겁재 투출은 월겁으로 씀", then: "투출한 지장간의 십신 격 (비겁이면 월겁격)", sources: ["transparent", "japgi", "ohGi"] },
+  { id: "mainKept", order: 6, when: "5에서 고른 중기를, 함께 투출한 여기가 극함 (申월의 壬을 戊가 극함)", then: "정기의 십신 격 (본격 유지)", sources: ["mainKept"] },
+  { id: "jeonggiDefault", order: 7, when: "정기가 비겁이 아니고, 판정에 쓰는 지장간 중 투출한 것이 없음", then: "정기의 십신 격", sources: ["monthly"] },
   { id: "gojiWolgeop", order: 8, when: "辰戌丑未월의 戊·己 일간(정기가 비겁)이고 여기·중기 투출이 없음", then: "월겁격", sources: ["rokGeop"] },
 ];
 
@@ -193,12 +235,12 @@ const branchLabel = (b: number) => `${BRANCHES[b].ko}(${BRANCHES[b].hanja})`;
 const isBigeop = (g: TenGod) => g === "비견" || g === "겁재";
 
 /** 받침이 있으면 앞 조사, 없으면 뒤 조사 ("은는" → 갑은, 무는) */
-function josa(ko: string, pair: "은는" | "이가") {
+function josa(ko: string, pair: "은는" | "이가" | "을를") {
   const c = ko.charCodeAt(ko.length - 1) - 0xac00;
   return c >= 0 && c < 11172 && c % 28 !== 0 ? pair[0] : pair[1];
 }
-const stemJ = (s: number, pair: "은는" | "이가") => stemLabel(s) + josa(STEMS[s].ko, pair);
-const branchJ = (b: number, pair: "은는" | "이가") => branchLabel(b) + josa(BRANCHES[b].ko, pair);
+const stemJ = (s: number, pair: "은는" | "이가" | "을를") => stemLabel(s) + josa(STEMS[s].ko, pair);
+const branchJ = (b: number, pair: "은는" | "이가" | "을를") => branchLabel(b) + josa(BRANCHES[b].ko, pair);
 
 function roleOf(i: number, length: number): HiddenRole {
   if (i === length - 1) return "정기";
@@ -211,6 +253,9 @@ const TEN_GOD_GROUP = ["비겁", "식상", "재성", "관성", "인성"] as cons
 function elementGroup(dayStem: number, e: Element): string {
   return TEN_GOD_GROUP[(ELEMENTS.indexOf(e) - Math.floor(dayStem / 2) + 5) % 5];
 }
+
+/** 오행 a가 오행 b를 극하나 (천간 인덱스) */
+const controls = (a: number, b: number) => (Math.floor(a / 2) + 2) % 5 === Math.floor(b / 2);
 
 function judgeCore(input: GyeokInput): Omit<Gyeokguk, "samhap" | "byHourBranch"> {
   const { dayStem, monthBranch, stems } = input;
@@ -243,7 +288,7 @@ function judgeCore(input: GyeokInput): Omit<Gyeokguk, "samhap" | "byHourBranch">
   };
 
   // 1) 건록·양인·월겁 — 월령이 일간과 같은 기운
-  const rokGeopTail = "월령이 일간과 같은 기운이라 월령 자체를 격의 쓰임으로 삼지 못하며, 다른 지장간이 투출해도 격은 바뀌지 않습니다.";
+  const rokGeopTail = "월령이 일간과 같은 기운이라 월령 자체를 격의 쓰임으로 삼지 못하며, 다른 지장간이 투출해도 격은 바뀌지 않습니다(建祿與月劫，可同一格…別取財官煞食爲用).";
   if (ROK_BRANCH[dayStem] === monthBranch) {
     reasons.push(`월지 ${branchJ(monthBranch, "은는")} 일간 ${stemLabel(dayStem)}의 건록(祿) 자리입니다 → 건록격. ${rokGeopTail}`);
     return finish("geonrok", "건록격", null);
@@ -259,35 +304,57 @@ function judgeCore(input: GyeokInput): Omit<Gyeokguk, "samhap" | "byHourBranch">
     return finish("wolgeop", "월겁격", null);
   }
 
-  // 2) 子午卯酉 — 정기만
+  // 2) 판정에 쓰는 지장간: 子午卯酉의 여기는 쓰지 않는다
   if (WANGJI.includes(monthBranch)) {
-    const name = EIGHT_GYEOK[main.tenGod]!;
-    for (const h of hidden) if (h !== main && h.revealedAt.length) h.note = "자오묘유월은 정기만 봄";
-    reasons.push(`자·오·묘·유월은 정기만 봅니다(자평진전: 子午卯酉 밖의 지지만 여러 기운을 품음). ${desc(main)} — ${reveal(main)} → ${name}.`);
-    return finish("wangji", name, main);
+    for (const h of hidden) if (h.role === "여기" && h.revealedAt.length) h.note = "자오묘유월의 여기는 판정에 쓰지 않음";
+    reasons.push(
+      "자·오·묘·유월은 여기를 판정에 쓰지 않습니다(除子午卯酉外，餘皆有藏)." +
+        (raw.length === 3 ? " 다만 오(午)의 중기 기(己)는 원문이 쓰므로 판정에 넣습니다(丙生午月，內藏己土 / 癸生午月，丁己並透)." : ""),
+    );
   }
+  const usable = (h: GyeokHidden) => h.revealedAt.length > 0 && !(WANGJI.includes(monthBranch) && h.role === "여기");
+  // 寅申巳亥의 비견·겁재 투출은 격이 되지 않고, 辰戌丑未(잡기)에서는 월겁으로 쓴다
+  const gyeokOf = (h: GyeokHidden): GyeokName | null => (isBigeop(h.tenGod) ? (isGoji ? "월겁격" : null) : EIGHT_GYEOK[h.tenGod]!);
 
-  // 3) 寅申巳亥·辰戌丑未 — 투출
-  for (const h of hidden) if (isBigeop(h.tenGod) && h.revealedAt.length) h.note = "비견·겁재는 격이 되지 않음";
+  // 3) 정기 투출
   const mainUsable = !isBigeop(main.tenGod);
+  for (const h of hidden) if (h !== main && usable(h) && !gyeokOf(h)) h.note = "비견·겁재는 격이 되지 않음";
   if (mainUsable && main.revealedAt.length) {
     const name = EIGHT_GYEOK[main.tenGod]!;
     reasons.push(`${desc(main)} — ${reveal(main)} → ${name}.`);
-    const others = hidden.filter((h) => h !== main && h.revealedAt.length && !isBigeop(h.tenGod));
-    if (others.length) reasons.push(`${others.map(desc).join(", ")}도 투출했지만 지장간 서열(정기 > 중기 > 여기)에 따라 정기를 씁니다.`);
+    const others = hidden.filter((h) => h !== main && usable(h) && gyeokOf(h));
+    if (others.length) {
+      reasons.push(`${others.map(desc).join(", ")}도 투출했지만 지장간 서열(정기 > 중기 > 여기)에 따라 정기를 씁니다(辛生寅月，透丙化官，而又透甲，格成正財).`);
+    }
     return finish("jeonggiReveal", name, main);
   }
   if (!mainUsable) {
-    reasons.push(`정기 ${stemJ(main.stem, "은는")} 일간 ${stemLabel(dayStem)}의 ${main.tenGod}입니다. 비견·겁재는 격이 되지 못하므로 여기·중기의 투출을 봅니다.`);
+    if (main.revealedAt.length) main.note = "정기가 비겁이라 격이 되지 않음";
+    reasons.push(`정기 ${stemJ(main.stem, "은는")} 일간 ${stemLabel(dayStem)}의 ${main.tenGod}입니다. 월령이 일간과 같은 기운이라 정기를 격으로 쓰지 못하므로 여기·중기의 투출을 봅니다.`);
   } else {
     reasons.push(`${desc(main)} — 투출 없음. 정기가 투출하지 않으면 투출한 지장간이 격을 맡습니다(不透甲而透丙…同知得以作主).`);
   }
-  // 서열: 중기 > 여기 (배열은 여기, 중기, 정기 순)
-  const candidates = hidden.filter((h) => h !== main && h.revealedAt.length && !isBigeop(h.tenGod)).reverse();
+
+  // 4) 여기·중기 투출 — 서열: 중기 > 여기 (배열은 여기, 중기, 정기 순)
+  const candidates = hidden.filter((h) => h !== main && usable(h) && gyeokOf(h)).reverse();
   if (candidates.length) {
     const pick = candidates[0];
-    const name = EIGHT_GYEOK[pick.tenGod]!;
-    reasons.push(`${desc(pick)} — ${reveal(pick)} → ${name}.`);
+    const name = gyeokOf(pick)!;
+    reasons.push(
+      `${desc(pick)} — ${reveal(pick)} → ${name}.` +
+        (isBigeop(pick.tenGod) ? " 진·술·축·미월(잡기)은 투출한 비견·겁재를 월겁으로 씁니다(甲生辰月…透乙則用月劫)." : ""),
+    );
+    // 고른 중기를 함께 투출한 여기가 극하면 중기는 물러나고 본격(정기)을 쓴다
+    const breaker = mainUsable && pick.role === "중기" ? hidden.find((h) => h.role === "여기" && h.revealedAt.length && controls(h.stem, pick.stem)) : undefined;
+    if (breaker) {
+      const kept = EIGHT_GYEOK[main.tenGod]!;
+      reasons.push(
+        `그러나 ${desc(breaker)}도 투출해 중기 ${stemJ(pick.stem, "을를")} 극하므로, 중기는 물러나고 본격인 ${desc(main)}${josa(main.tenGod, "을를")} 씁니다 → ${kept}(乙生申月，透壬化印，而又透戊…格成正官 / 丙生申月，逢壬化煞，而又透戊…仍爲財格).`,
+      );
+      pick.note = `여기 ${stemLabel(breaker.stem)}에 극당해 물러남`;
+      breaker.note = `중기 ${stemJ(pick.stem, "을를")} 극함`;
+      return finish("mainKept", kept, main);
+    }
     if (candidates.length > 1) reasons.push(`${candidates.slice(1).map(desc).join(", ")}도 투출했지만 지장간 서열(중기 > 여기)에 따라 ${pick.role}를 씁니다.`);
     return finish("hiddenReveal", name, pick);
   }
@@ -296,7 +363,7 @@ function judgeCore(input: GyeokInput): Omit<Gyeokguk, "samhap" | "byHourBranch">
     return finish("gojiWolgeop", "월겁격", null);
   }
   const name = EIGHT_GYEOK[main.tenGod]!;
-  reasons.push(`투출한 여기·중기도 없으므로 정기를 씁니다 → ${name}.`);
+  reasons.push(`판정에 쓰는 여기·중기도 투출하지 않았으므로 정기를 씁니다 → ${name}.`);
   return finish("jeonggiDefault", name, main);
 }
 
