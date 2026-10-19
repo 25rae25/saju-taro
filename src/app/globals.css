@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #faf7f2;
+  --surface: #ffffff;
+  --foreground: #1f1b16;
+  --muted: #6b6258;
+  --line: #e6dfd4;
+  --accent: #9b2c2c;
+  --accent-soft: #f6e7e4;
+  --tarot: #3b3a7a;
+  --tarot-soft: #ebeaf7;
+  --warn: #8a5a00;
+  --warn-soft: #fdf3dc;
+  --wood: #3f7d4e;
+  --fire: #c2410c;
+  --earth: #a16207;
+  --metal: #6b7280;
+  --water: #1e40af;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #15130f;
+    --surface: #1e1b16;
+    --foreground: #ece6dc;
+    --muted: #a59b8e;
+    --line: #36302a;
+    --accent: #e07a6e;
+    --accent-soft: #3a211d;
+    --tarot: #a9a7f0;
+    --tarot-soft: #25244a;
+    --warn: #f0c060;
+    --warn-soft: #3a2e12;
+    --wood: #6fbf83;
+    --fire: #f0844c;
+    --earth: #d9a441;
+    --metal: #b4b9c2;
+    --water: #7aa2f7;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-tarot: var(--tarot);
+  --color-tarot-soft: var(--tarot-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-wood: var(--wood);
+  --color-fire: var(--fire);
+  --color-earth: var(--earth);
+  --color-metal: var(--metal);
+  --color-water: var(--water);
+  --font-sans: "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-serif: "AppleMyungjo", "Noto Serif KR", "Batang", serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  word-break: keep-all;
 }

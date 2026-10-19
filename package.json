@@ -6,9 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "gen:terms": "tsx scripts/gen-solar-terms.ts",
+    "gen:tz": "tsx scripts/gen-seoul-tz.ts"
   },
   "dependencies": {
+    "astronomy-engine": "2.1.19",
+    "korean-lunar-calendar": "0.4.0",
     "next": "16.4.2",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -20,7 +25,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "lunar-javascript": "1.7.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^4.1.12"
   }
 }
