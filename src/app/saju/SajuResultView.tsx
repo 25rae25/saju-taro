@@ -1,7 +1,9 @@
 import { CORRECTION_LABEL, type PillarInfo, type SajuResult } from "@/lib/saju";
 import { BRANCHES, ELEMENT_HANJA, ELEMENTS, STEMS, type Element } from "@/lib/saju/constants";
+import { buildSajuReading, currentDaeunIndex } from "@/lib/saju/reading";
 import { seoulOffsetAt } from "@/lib/saju/time";
 import GyeokgukView from "./GyeokgukView";
+import ReadingView from "./ReadingView";
 
 const ELEMENT_TEXT: Record<Element, string> = {
   목: "text-wood",
@@ -107,7 +109,7 @@ function LuckCell({ head, p, sub, current }: { head: string; p: PillarInfo; sub:
 export default function SajuResultView({ r, now }: { r: SajuResult; now: number }) {
   const { input } = r;
   const total = ELEMENTS.reduce((a, e) => a + r.elements[e], 0);
-  const currentDaeun = r.daeun.items.findIndex((d, i) => now >= d.startUtcMs && (i === 9 || now < r.daeun.items[i + 1].startUtcMs));
+  const currentDaeun = currentDaeunIndex(r.daeun, now);
   const thisYear = new Date(now + 9 * 3600e3).getUTCFullYear();
 
   return (
@@ -183,6 +185,10 @@ export default function SajuResultView({ r, now }: { r: SajuResult; now: number 
             <LuckCell key={s.year} head={`${s.year}`} p={s} sub={s.ko} current={s.year === thisYear} />
           ))}
         </div>
+      </Section>
+
+      <Section title="풀이" note="상담 흐름 순서 · 규칙에 따라 고른 문장">
+        <ReadingView reading={buildSajuReading(r, now)} />
       </Section>
 
       <details className="rounded-xl border border-line bg-surface p-5 text-sm">
